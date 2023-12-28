@@ -1,7 +1,8 @@
 from django.contrib.gis.db import models as models
 from isochrone.models import Isochrone
-from django.db.models import Q
 import networkx as nx
+from geo.utils import printProgressBar
+
 
 class Railway(models.Model):
     iid = models.IntegerField()
@@ -24,22 +25,10 @@ class Railway(models.Model):
     
     @classmethod
     def optimize(cls):
-        G = nx.Graph()
-        nodes = [{'id':railway.id, 'is_cont': railway.is_cont} for railway in cls.objects.all()]
-        not_conts = [railway['id'] for railway in filter(lambda x: not x['is_cont'], nodes)]
-        nodes = [railway['id'] for railway in nodes]
-        edges = [(edge.source.id, edge.target.id, edge.length) for edge in Neighborhood.objects.all()]
-        G.add_nodes_from(nodes)
-        G.add_weighted_edges_from(edges)
-        while removeNotConts(G, not_conts):
-            pass
-        NeighborhoodOp.objects.all().delete()
-        new_Neighborhoods = []
-        for edge in G.edges(data=True):
-            source = Railway.objects.get(id=edge[0])
-            target = Railway.objects.get(id=edge[1])
-            new_Neighborhoods.append(NeighborhoodOp(source=source, target=target, length=edge[2]['weight']))
-        NeighborhoodOp.objects.bulk_create(new_Neighborhoods)
+        G, not_conts = getGraph(cls)
+        not_conts_count = len(not_conts)
+        removeNotConts(G, not_conts, not_conts_count)
+        createNeighborhoodOP(G)
     
     @classmethod
     def test(cls):
@@ -49,18 +38,38 @@ class Railway(models.Model):
         for cl in list(nx.connected_components(G)):
             print(len(cl))
 
-def removeNotConts(g: nx.Graph, not_conts):
-    for node in g.nodes:
-        if node in not_conts:
+def getGraph(cls):
+    G = nx.Graph()
+    print('Loading graph...')
+    not_conts = [railway.id for railway in cls.objects.filter(is_cont=False)]
+    edges = [(edge.source.id, edge.target.id, edge.length) for edge in Neighborhood.objects.all()]
+    G.add_weighted_edges_from(edges)
+    return (G, not_conts)
+
+def createNeighborhoodOP(G):
+    print('Creating Optimized Edges...')
+    NeighborhoodOp.objects.all().delete()
+    new_Neighborhoods = []
+    for edge in G.edges(data=True):
+        source = Railway.objects.get(id=edge[0])
+        target = Railway.objects.get(id=edge[1])
+        new_Neighborhoods.append(NeighborhoodOp(source=source, target=target, length=edge[2]['weight']))
+    NeighborhoodOp.objects.bulk_create(new_Neighborhoods)
+    print('Done')
+
+def removeNotConts(g: nx.Graph, not_conts, total):
+    for i, node in enumerate(not_conts):
+        printProgressBar(i, total, prefix = 'Railway Optimize Progress:', suffix = 'Complete', length = 40)
+        if node in g.nodes:
             edges = g.edges(node, data=True)
             edges = list(edges.__iter__())
             if len(edges) == 0:
                 g.remove_node(node)
-                return 1
+                continue
             if len(edges) == 1:
                 g.remove_edge(edges[0][0], edges[0][1])
                 g.remove_node(node)
-                return 1
+                continue
             root = edges[0]
             u = root[0] if root[0] != node else root[1]
             for edge in edges[1:]:
@@ -72,8 +81,6 @@ def removeNotConts(g: nx.Graph, not_conts):
                 g.remove_edge(edge[0], edge[1])
             g.remove_edge(root[0], root[1])
             g.remove_node(node)
-            return 1
-    return 0
 
 class Neighborhood(models.Model):
     source = models.ForeignKey(Railway, on_delete=models.CASCADE, related_name = 'source')

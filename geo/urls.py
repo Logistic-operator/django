@@ -15,10 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from railway.views import railway_upload
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('upload-csv/<str:name>', railway_upload),
+    path('wh/', include('warehouse.urls', namespace='warehouse')),
+    path('iso/', include('isochrone.urls', namespace='isochrone')),
+    path('app/', include('application.urls', namespace='application')),
+    path('rw/', include('railway.urls', namespace='railway')),
 ]

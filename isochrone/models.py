@@ -1,34 +1,27 @@
 from django.contrib.gis.db import models as models
-from django.forms import ValidationError
 import requests
 import json
 from django.contrib.gis.geos import GEOSGeometry, GeometryCollection
 from django.apps import apps
+from rest_framework.exceptions import ValidationError
 
-
+from geo.utils import printProgressBar
 
 class Isochrone(models.Model):
-    seller = models.ForeignKey('seller.Seller', on_delete=models.CASCADE)
+    warehouse = models.ForeignKey('warehouse.Warehouse', on_delete=models.CASCADE)
     timespan = models.IntegerField() # minutes
     geom = models.PolygonField(null=True)
     railways = models.ManyToManyField('railway.Railway', symmetrical = False, related_name = 'Railways')
     all_geom = models.GeometryCollectionField(null=True)
 
     readonly_fields=('geom', 'all_geom')
-    unique_together=('seller', 'timespan')
-
-    # @property
-    # def all_geom(self):
-    #     ps = [r.point for r in self.railways.all()]
-    #     # res = {'poly':self.geom.geojson, 'stations': ps}
-    #     return models.GeometryCollectionField
-
+    unique_together=('warehouse', 'timespan')
 
     def __str__(self) -> str:
-        return str(self.id) + ' ' + self.seller.phone + ' ' + str(self.timespan)
+        return str(self.id) + ' ' + self.warehouse.phone + ' ' + str(self.timespan)
 
     def redraw(self):
-        x, y = (str(self.seller.point.x), str(self.seller.point.y))
+        x, y = (str(self.warehouse.point.x), str(self.warehouse.point.y))
         time = str(self.timespan)
         url = 'http://localhost:8002/isochrone?json={"costing":"truck","costing_options":'\
             '{"truck":{"exclude_polygons":[],"maneuver_penalty":5,"country_crossing_penalty":0,'\
@@ -54,11 +47,15 @@ class Isochrone(models.Model):
         
 
     def getRailways(self):
+        self.save()
         query = 'select st.* from (select id as iso_id, geom from isochrone_isochrone where id=%s) as iso cross join railway_railway as st where st.is_cont and ST_Contains(iso.geom, st.point)'
         Railway = apps.get_model(app_label='railway', model_name='Railway')
         self.railways.through.objects.all().delete()
-        for r in Railway.objects.raw(query, [self.id]):
+        RWs = Railway.objects.raw(query, [self.id])
+        total = len(RWs)
+        for i, r in enumerate(RWs):
             self.railways.add(r)
+            printProgressBar(i + 1, total, prefix = 'Railway To Isochrone Progress:', suffix = 'Complete', length = 40)
         self.all_geom = GeometryCollection(self.geom, *[r.point for r in self.railways.all()])
         self.save()
 

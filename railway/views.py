@@ -5,6 +5,18 @@ from .models import Railway, Neighborhood
 from django.contrib.gis.geos import GEOSGeometry
 from django.apps import apps
 
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import (
+    api_view, 
+    permission_classes,
+    renderer_classes,
+    parser_classes,
+    )
+from rest_framework.exceptions import NotFound
+from rest_framework.parsers import MultiPartParser, FormParser
+
+
 
 def railway_upload(request, name):    
     template = "profile_upload.html"
@@ -26,7 +38,9 @@ def railway_upload(request, name):
     data_set = csv_file.read().decode('UTF-8')
     io_string = io.StringIO(data_set)
     next(io_string)
+    i = 1
     for column in csv.reader(io_string, delimiter='\t', quotechar="|"):
+        print(name,' ', str(i))
         if name == 'rail':
             Railway.objects.update_or_create(
                 iid=column[0],
@@ -40,6 +54,7 @@ def railway_upload(request, name):
                 target=Railway.objects.get(iid=int(column[1])),
                 length=column[2],
             )
+        i += 1
         
     context = {}
     return render(request, template, context)

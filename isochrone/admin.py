@@ -23,7 +23,7 @@ class IsochroneAdmin(GISModelAdmin):
             obj.getRailways()
             self.message_user(
                     request,
-                    'test ',
+                    'Railways geted',
                     messages.SUCCESS,
                 )
 
