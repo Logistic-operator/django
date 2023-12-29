@@ -29,12 +29,12 @@ class RailwayAdmin(DjangoObjectActions, GISModelAdmin):
             'optimized',
             messages.SUCCESS,
         )
-    @action(label="Test", description="Test routes")
+    @action(label="Draw graph", description="Draw graph")
     def test(self, request, obj):
         obj[0].test()
         self.message_user(
             request,
-            'test',
+            'Link http://localhost:8001/static/plot.png plot file',
             messages.SUCCESS,
         )
     

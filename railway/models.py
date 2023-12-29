@@ -2,6 +2,10 @@ from django.contrib.gis.db import models as models
 from isochrone.models import Isochrone
 import networkx as nx
 from geo.utils import printProgressBar
+from django.contrib.gis.geos import GEOSGeometry
+import matplotlib.pyplot as plt
+from geo.settings import BASE_DIR
+
 
 
 class Railway(models.Model):
@@ -33,10 +37,19 @@ class Railway(models.Model):
     @classmethod
     def test(cls):
         G = nx.Graph()
-        edges = [(edge.source.id, edge.target.id) for edge in NeighborhoodOp.objects.all()]
-        G.add_edges_from(edges)
-        for cl in list(nx.connected_components(G)):
-            print(len(cl))
+        nodes = [(node.id, node.point.x, node.point.y) for node in Railway.objects.filter(is_cont=True)]
+        for node in nodes:
+            G.add_node(node[0], pos=(node[1], node[2]))
+        edges = [(edge.source.id, edge.target.id, edge.length) for edge in NeighborhoodOp.objects.all()]
+        G.add_weighted_edges_from(edges)
+        pos=nx.get_node_attributes(G,'pos')
+        nx.draw(G,pos)
+        labels = nx.get_edge_attributes(G,'weight')
+        nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
+        fig = plt.gcf()
+        fig.set_size_inches(80, 60)
+        fig.savefig(BASE_DIR / 'static/plot.png', dpi=100)
+        # plt.savefig(BASE_DIR / 'static/plot.png', dpi=300, bbox_inches='tight')
 
 def getGraph(cls):
     G = nx.Graph()
