@@ -8,10 +8,10 @@ class Warehouse(models.Model):
     def __str__(self) -> str:
         return str(self.id) + ' ' + self.phone
     
-    def createIsochrones(self, timespan: [int]):
+    def createIsochrones(self, timespan: []):
         isochrones = []
         for time in timespan:
-            isochrone = Isochrone.objects.get_or_create(warehouse=self, timespan=time)[0]
+            isochrone = Isochrone.objects.get_or_create(warehouse=self, timespan=int(time))[0]
             isochrone.redraw()
             isochrones.append(isochrone)
         return isochrones

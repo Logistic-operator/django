@@ -11,16 +11,7 @@ async def main():
 
     # Execute a workflow
     result = await client.execute_workflow(
-        SayHello.run, {
-        "phone": "123",
-        "point": {
-            "type": "Point",
-            "coordinates": [
-                38.75976563,
-                55.42901345
-            ]
-        }
-        }, id="hello-workflow", task_queue="hello-task-queue"
+        SayHello.run, id="hello-workflow", task_queue="hello-task-queue"
     )
 
     print(f"Result: {result}")

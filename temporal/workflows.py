@@ -1,14 +1,15 @@
 from datetime import timedelta
 from temporalio import workflow
 
+
 # Import activity, passing it through the sandbox without reloading the module
 with workflow.unsafe.imports_passed_through():
-    from activities import createWH
+    from activities import say_hello
 
 @workflow.defn
 class SayHello:
     @workflow.run
-    async def run(self, newWH) -> str:
+    async def run(self) -> list:
         return await workflow.execute_activity(
-            createWH, newWH, start_to_close_timeout=timedelta(seconds=10)
+            say_hello, start_to_close_timeout=timedelta(seconds=10)
         )

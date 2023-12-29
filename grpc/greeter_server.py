@@ -17,28 +17,23 @@ from concurrent import futures
 import logging
 
 import grpc
-import warehouse_pb2
 import warehouse_pb2_grpc
+import isochrone_pb2_grpc
 import django, os
 import sys
 sys.path.append('..')
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "geo.settings")
  
 django.setup()
-from warehouse.models import Warehouse
-from warehouse.serializers import WarehouseModelSerializer
 
-class Greeter(warehouse_pb2_grpc.WarehouseControllerServicer):
-    def List(self, request, context):
-        print('123')
-        for obj in WarehouseModelSerializer(Warehouse.objects.all(), many=True).data:
-            yield warehouse_pb2.Warehouse(id=obj['id'], phone=obj['phone'], point=obj['point'])
-
+from warehouse_service import WarehouseServicer
+from isochrone_service import IsochroneServicer
 
 def serve():
     port = "50051"
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    warehouse_pb2_grpc.add_WarehouseControllerServicer_to_server(Greeter(), server)
+    warehouse_pb2_grpc.add_WarehouseControllerServicer_to_server(WarehouseServicer(), server)
+    isochrone_pb2_grpc.add_IsochroneControllerServicer_to_server(IsochroneServicer(), server)
     server.add_insecure_port("[::]:" + port)
     server.start()
     print("Server started, listening on " + port)

@@ -20,6 +20,8 @@ import logging
 import grpc
 import warehouse_pb2
 import warehouse_pb2_grpc
+import isochrone_pb2
+import isochrone_pb2_grpc
 
 
 def run():
@@ -28,10 +30,11 @@ def run():
     # of the code.
     print("Will try to greet world ...")
     with grpc.insecure_channel("localhost:50051") as channel:
-        stub = warehouse_pb2_grpc.WarehouseControllerStub(channel)
-        response = stub.List(warehouse_pb2.WarehouseListRequest())
-        for r in response:
-            print(r)
+        stub = isochrone_pb2_grpc.IsochroneControllerStub(channel)
+        response = stub.Delete(isochrone_pb2.IsochroneRetrieveRequest(warehouse_id=27, timespan=120))
+        # for r in response:
+        #     print(r)
+        print(response.id)
 
 
 if __name__ == "__main__":

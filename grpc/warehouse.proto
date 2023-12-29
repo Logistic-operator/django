@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package warehouse;
+
+import "google/protobuf/empty.proto";
+
+service WarehouseController {
+    rpc List(WarehouseListRequest) returns (stream Warehouse) {}
+    rpc Retrieve(WarehouseRetrieveRequest) returns (Warehouse) {}
+    rpc Create(Warehouse) returns (Warehouse) {}
+    rpc Change(Warehouse) returns (Warehouse) {}
+    rpc Delete(WarehouseRetrieveRequest) returns (Warehouse) {}
+    rpc Iso(WarehouseIsoRequest) returns (stream Isochrone) {}
+}
+
+message Warehouse {
+    int64 id = 1;
+    string phone = 2;
+    string point = 3;
+}
+
+message WarehouseListRequest {
+}
+
+message WarehouseRetrieveRequest {
+    int64 id = 1;
+}
+
+message WarehouseIsoRequest {
+    int64 id = 1;
+    string timespans = 2;
+}
+
+message Isochrone {
+    int64 id = 1;
+    int64 warehouse_id = 2;
+    int64 timespan = 3;
+    string all_geom = 4;
+}
