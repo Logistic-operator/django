@@ -29,6 +29,11 @@ class IsochroneControllerStub(object):
                 request_serializer=isochrone__pb2.IsochroneRetrieveRequest.SerializeToString,
                 response_deserializer=isochrone__pb2.Isochrone.FromString,
                 )
+        self.ListRailways = channel.unary_stream(
+                '/isochrone.IsochroneController/ListRailways',
+                request_serializer=isochrone__pb2.IsochroneRetrieveRequest.SerializeToString,
+                response_deserializer=isochrone__pb2.Railway.FromString,
+                )
 
 
 class IsochroneControllerServicer(object):
@@ -52,6 +57,12 @@ class IsochroneControllerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def ListRailways(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_IsochroneControllerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -69,6 +80,11 @@ def add_IsochroneControllerServicer_to_server(servicer, server):
                     servicer.Delete,
                     request_deserializer=isochrone__pb2.IsochroneRetrieveRequest.FromString,
                     response_serializer=isochrone__pb2.Isochrone.SerializeToString,
+            ),
+            'ListRailways': grpc.unary_stream_rpc_method_handler(
+                    servicer.ListRailways,
+                    request_deserializer=isochrone__pb2.IsochroneRetrieveRequest.FromString,
+                    response_serializer=isochrone__pb2.Railway.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -128,5 +144,22 @@ class IsochroneController(object):
         return grpc.experimental.unary_unary(request, target, '/isochrone.IsochroneController/Delete',
             isochrone__pb2.IsochroneRetrieveRequest.SerializeToString,
             isochrone__pb2.Isochrone.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ListRailways(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(request, target, '/isochrone.IsochroneController/ListRailways',
+            isochrone__pb2.IsochroneRetrieveRequest.SerializeToString,
+            isochrone__pb2.Railway.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

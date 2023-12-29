@@ -31,10 +31,10 @@ def run():
     print("Will try to greet world ...")
     with grpc.insecure_channel("localhost:50051") as channel:
         stub = isochrone_pb2_grpc.IsochroneControllerStub(channel)
-        response = stub.Delete(isochrone_pb2.IsochroneRetrieveRequest(warehouse_id=27, timespan=120))
-        # for r in response:
-        #     print(r)
-        print(response.id)
+        response = stub.ListRailways(isochrone_pb2.IsochroneRetrieveRequest(warehouse_id=27, timespan=240))
+        for r in response:
+            print(r)
+        # print(response.id)
 
 
 if __name__ == "__main__":

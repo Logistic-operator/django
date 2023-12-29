@@ -30,3 +30,13 @@ class Isochrone(_message.Message):
     timespan: int
     all_geom: str
     def __init__(self, id: _Optional[int] = ..., warehouse_id: _Optional[int] = ..., timespan: _Optional[int] = ..., all_geom: _Optional[str] = ...) -> None: ...
+
+class Railway(_message.Message):
+    __slots__ = ("id", "iid", "point")
+    ID_FIELD_NUMBER: _ClassVar[int]
+    IID_FIELD_NUMBER: _ClassVar[int]
+    POINT_FIELD_NUMBER: _ClassVar[int]
+    id: int
+    iid: int
+    point: str
+    def __init__(self, id: _Optional[int] = ..., iid: _Optional[int] = ..., point: _Optional[str] = ...) -> None: ...
