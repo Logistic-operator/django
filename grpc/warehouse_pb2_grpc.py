@@ -44,6 +44,11 @@ class WarehouseControllerStub(object):
                 request_serializer=warehouse__pb2.WarehouseIsoRequest.SerializeToString,
                 response_deserializer=warehouse__pb2.Isochrone.FromString,
                 )
+        self.NearestStation = channel.unary_unary(
+                '/warehouse.WarehouseController/NearestStation',
+                request_serializer=warehouse__pb2.WarehouseRetrieveRequest.SerializeToString,
+                response_deserializer=warehouse__pb2.Warehouse.FromString,
+                )
 
 
 class WarehouseControllerServicer(object):
@@ -85,6 +90,12 @@ class WarehouseControllerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def NearestStation(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_WarehouseControllerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -117,6 +128,11 @@ def add_WarehouseControllerServicer_to_server(servicer, server):
                     servicer.Iso,
                     request_deserializer=warehouse__pb2.WarehouseIsoRequest.FromString,
                     response_serializer=warehouse__pb2.Isochrone.SerializeToString,
+            ),
+            'NearestStation': grpc.unary_unary_rpc_method_handler(
+                    servicer.NearestStation,
+                    request_deserializer=warehouse__pb2.WarehouseRetrieveRequest.FromString,
+                    response_serializer=warehouse__pb2.Warehouse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -227,5 +243,22 @@ class WarehouseController(object):
         return grpc.experimental.unary_stream(request, target, '/warehouse.WarehouseController/Iso',
             warehouse__pb2.WarehouseIsoRequest.SerializeToString,
             warehouse__pb2.Isochrone.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def NearestStation(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/warehouse.WarehouseController/NearestStation',
+            warehouse__pb2.WarehouseRetrieveRequest.SerializeToString,
+            warehouse__pb2.Warehouse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

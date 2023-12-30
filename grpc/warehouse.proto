@@ -11,12 +11,15 @@ service WarehouseController {
     rpc Change(Warehouse) returns (Warehouse) {}
     rpc Delete(WarehouseRetrieveRequest) returns (Warehouse) {}
     rpc Iso(WarehouseIsoRequest) returns (stream Isochrone) {}
+    rpc NearestStation(WarehouseRetrieveRequest) returns (Warehouse) {}
 }
 
 message Warehouse {
     int64 id = 1;
     string phone = 2;
     string point = 3;
+    int64 nearest_railway_id = 4;
+    float nearest_railway_length = 5;
 }
 
 message WarehouseListRequest {

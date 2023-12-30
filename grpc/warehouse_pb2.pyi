@@ -6,14 +6,18 @@ from typing import ClassVar as _ClassVar, Optional as _Optional
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class Warehouse(_message.Message):
-    __slots__ = ("id", "phone", "point")
+    __slots__ = ("id", "phone", "point", "nearest_railway_id", "nearest_railway_length")
     ID_FIELD_NUMBER: _ClassVar[int]
     PHONE_FIELD_NUMBER: _ClassVar[int]
     POINT_FIELD_NUMBER: _ClassVar[int]
+    NEAREST_RAILWAY_ID_FIELD_NUMBER: _ClassVar[int]
+    NEAREST_RAILWAY_LENGTH_FIELD_NUMBER: _ClassVar[int]
     id: int
     phone: str
     point: str
-    def __init__(self, id: _Optional[int] = ..., phone: _Optional[str] = ..., point: _Optional[str] = ...) -> None: ...
+    nearest_railway_id: int
+    nearest_railway_length: float
+    def __init__(self, id: _Optional[int] = ..., phone: _Optional[str] = ..., point: _Optional[str] = ..., nearest_railway_id: _Optional[int] = ..., nearest_railway_length: _Optional[float] = ...) -> None: ...
 
 class WarehouseListRequest(_message.Message):
     __slots__ = ()

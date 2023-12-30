@@ -53,11 +53,21 @@ class Isochrone(models.Model):
         self.railways.through.objects.all().delete()
         RWs = Railway.objects.raw(query, [self.id])
         total = len(RWs)
+        
         for i, r in enumerate(RWs):
             self.railways.add(r)
             printProgressBar(i + 1, total, prefix = 'Railway To Isochrone Progress:', suffix = 'Complete', length = 40)
+
         self.all_geom = GeometryCollection(self.geom, *[r.point for r in self.railways.all()])
         self.save()
+        return self
+    
+def getWhToStationRoute(wh, rw):
+
+    return {
+        'id': rw.id,
+        'len': 1
+    }
 
     @classmethod
     def test(cls):

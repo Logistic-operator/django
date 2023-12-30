@@ -7,29 +7,46 @@ import grpc
 
 import sys
 sys.path.append('..')
-sys.path.append('../temp')
+sys.path.append('../grpc')
 
-import grpc.warehouse_pb2 as warehouse_pb2
-import grpc.warehouse_pb2_grpc as warehouse_pb2_grpc
-import grpc.isochrone_pb2 as isochrone_pb2
-import grpc.isochrone_pb2_grpc as isochrone_pb2_grpc
+import warehouse_pb2
+import warehouse_pb2_grpc
+import isochrone_pb2
+import isochrone_pb2_grpc
 
+grpc_url = 'localhost:50051'
 
 @activity.defn
-async def say_hello() -> list:
+async def drawAllIsos(wh_id) -> list:
     res = []
-    with grpc.insecure_channel("localhost:50051") as channel:
-        stub = isochrone_pb2_grpc.IsochroneControllerStub(channel)
-        response = stub.List(isochrone_pb2.IsochroneListRequest(warehouse_id=27))
+    with grpc.insecure_channel(grpc_url) as channel:
+        stub = warehouse_pb2_grpc.WarehouseControllerStub(channel)
+        response = stub.Iso(warehouse_pb2.WarehouseIsoRequest(id=wh_id, timespans='all'))
         for r in response:
             res.append(isochroneSerializer(r))
     return res
+
+@activity.defn
+async def createWH(wh) -> dict:
+    with grpc.insecure_channel(grpc_url) as channel:
+        stub = warehouse_pb2_grpc.WarehouseControllerStub(channel)
+        response = stub.Create(warehouse_pb2.Warehouse(phone=wh.phone, point=wh.point))
+        return warehouseSerializer(response)
+
+@activity.defn
+async def findNearestRailway(wh_id) -> dict:
+    with grpc.insecure_channel(grpc_url) as channel:
+        stub = warehouse_pb2_grpc.WarehouseControllerStub(channel)
+        response = stub.NearestStation(warehouse_pb2.WarehouseRetrieveRequest(id=wh_id))
+        return warehouseSerializer(response)
 
 def warehouseSerializer(wh: warehouse_pb2.Warehouse):
     return {
         'id': wh.id,
         'phone': wh.phone,
         'point': wh.point,
+        'nearest_railway_id': wh.nearest_railway_id,
+        'nearest_railway_length': wh.nearest_railway_length,
         }
 
 def isochroneSerializer(iso: isochrone_pb2.Isochrone):
