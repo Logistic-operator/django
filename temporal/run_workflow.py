@@ -1,7 +1,7 @@
 # @@@SNIPSTART python-project-template-run-workflow
 import asyncio
 
-from run_worker import WarehouseNearest, WarehouseIsos
+from run_worker import WarehouseNearest, WarehouseIsos, RailwayOptimize
 from temporalio.client import Client
 
 
@@ -14,10 +14,10 @@ async def main():
 
     # Execute a workflow
     result = await client.execute_workflow(
-        WarehouseNearest.run, 29, id="wh-workflow", task_queue="wh-task-queue"
+        RailwayOptimize.run, id="rw-workflow", task_queue="wh-task-queue"
     )
 
-    print(f"Result: {result['nearest_railway_id']}")
+    print(f"Result: {result}")
 
 
 if __name__ == "__main__":

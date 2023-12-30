@@ -19,6 +19,7 @@ import logging
 import grpc
 import warehouse_pb2_grpc
 import isochrone_pb2_grpc
+import railway_pb2_grpc
 import django, os
 import sys
 sys.path.append('..')
@@ -28,12 +29,14 @@ django.setup()
 
 from warehouse_service import WarehouseServicer
 from isochrone_service import IsochroneServicer
+from railway_service import RailwayServicer
 
 def serve():
     port = "50051"
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     warehouse_pb2_grpc.add_WarehouseControllerServicer_to_server(WarehouseServicer(), server)
     isochrone_pb2_grpc.add_IsochroneControllerServicer_to_server(IsochroneServicer(), server)
+    railway_pb2_grpc.add_RailwayControllerServicer_to_server(RailwayServicer(), server)
     server.add_insecure_port("[::]:" + port)
     server.start()
     print("Server started, listening on " + port)

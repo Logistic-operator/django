@@ -13,6 +13,8 @@ import warehouse_pb2
 import warehouse_pb2_grpc
 import isochrone_pb2
 import isochrone_pb2_grpc
+import railway_pb2
+import railway_pb2_grpc
 
 grpc_url = 'localhost:50051'
 
@@ -39,6 +41,13 @@ async def findNearestRailway(wh_id) -> dict:
         stub = warehouse_pb2_grpc.WarehouseControllerStub(channel)
         response = stub.NearestStation(warehouse_pb2.WarehouseRetrieveRequest(id=wh_id))
         return warehouseSerializer(response)
+
+@activity.defn
+async def optimize() -> str:
+    with grpc.insecure_channel(grpc_url) as channel:
+        stub = railway_pb2_grpc.RailwayControllerStub(channel)
+        response = stub.OptimizeNeighborhood(railway_pb2.OptimizeRequest())
+        return response
 
 def warehouseSerializer(wh: warehouse_pb2.Warehouse):
     return {

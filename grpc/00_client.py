@@ -22,6 +22,8 @@ import warehouse_pb2
 import warehouse_pb2_grpc
 import isochrone_pb2
 import isochrone_pb2_grpc
+import railway_pb2
+import railway_pb2_grpc
 
 
 def run():
@@ -30,10 +32,9 @@ def run():
     # of the code.
     print("Will try to greet world ...")
     with grpc.insecure_channel("localhost:50051") as channel:
-        stub = isochrone_pb2_grpc.IsochroneControllerStub(channel)
-        response = stub.ListRailways(isochrone_pb2.IsochroneRetrieveRequest(warehouse_id=27, timespan=240))
-        for r in response:
-            print(r)
+        stub = railway_pb2_grpc.RailwayControllerStub(channel)
+        response = stub.OptimizeNeighborhood(railway_pb2.OptimizeRequest())
+        print(response)
         # print(response.id)
 
 

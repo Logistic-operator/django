@@ -8,8 +8,8 @@ import json
 
 
 class RailwayServicer(railway_pb2_grpc.RailwayControllerServicer):
-    def List(self, request, context):
-        pass
+    def OptimizeNeighborhood(self, request, context):
+        return railway_pb2.Optimized(result= Railway.optimize())
 
 def toGrpcRw(rw):
     return railway_pb2.Railway(

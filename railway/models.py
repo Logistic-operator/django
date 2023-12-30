@@ -33,6 +33,7 @@ class Railway(models.Model):
         not_conts_count = len(not_conts)
         removeNotConts(G, not_conts, not_conts_count)
         createNeighborhoodOP(G)
+        return str(Neighborhood.objects.count()) + '/' + str(NeighborhoodOp.objects.count())
     
     @classmethod
     def test(cls):
