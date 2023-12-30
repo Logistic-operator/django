@@ -9,7 +9,7 @@ with workflow.unsafe.imports_passed_through():
 @workflow.defn
 class WarehouseNearest:
     @workflow.run
-    async def run(self, wh_id) -> list:
+    async def run(self, wh_id) -> dict:
         return await workflow.execute_activity(
             findNearestRailway, wh_id, start_to_close_timeout=timedelta(seconds=10)
         )
@@ -17,7 +17,7 @@ class WarehouseNearest:
 @workflow.defn
 class WarehouseIsos:
     @workflow.run
-    async def run(self, wh_id) -> list:
+    async def run(self, wh_id) -> dict:
         return await workflow.execute_activity(
             drawAllIsos, wh_id, start_to_close_timeout=timedelta(seconds=10)
         )
