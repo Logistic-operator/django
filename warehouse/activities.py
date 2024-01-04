@@ -30,5 +30,5 @@ async def findNearestStation(wh_id) -> str:
 async def create(input: ComposeCreateInput) -> int:
     Warehouse = apps.get_model(app_label='warehouse', model_name='Warehouse')
     the_wh = Warehouse(phone=input.phone, point=input.point)
-    await the_wh.asave(force_insert=True)
+    await the_wh.asave()
     return the_wh.id
