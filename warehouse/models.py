@@ -1,24 +1,62 @@
+from collections.abc import Iterable
+from typing import Any, Coroutine
 from django.contrib.gis.db import models as models
 from isochrone.models import Isochrone
 from django.db.models import Count
 import requests
+import asyncio
+
+from geo.utils import postpone, getRowsFromCSV
+from temporalio.client import Client
+from .workflows import WarehouseIsos, WarehouseNearest, WarehouseCreate
+import asyncio
+from asgiref.sync import sync_to_async
+
+from .activities import ComposeCreateInput
+
 
 class Warehouse(models.Model):
     phone = models.CharField(max_length=15)
-    point = models.PointField()
+    point = models.PointField(unique=True)
     nearest_railway = models.ForeignKey('railway.Railway', on_delete=models.SET_NULL, null=True, blank=True, )
     nearest_railway_length = models.FloatField(blank=True, null=True)
 
     def __str__(self) -> str:
         return str(self.id) + ' ' + self.phone
     
+    async def acreateIsochrones(self, timespan: []):
+        return await sync_to_async(self.createIsochrones)(timespan)
+
     def createIsochrones(self, timespan: []):
         isochrones = []
         for time in timespan:
             isochrone = Isochrone.objects.get_or_create(warehouse=self, timespan=int(time))[0]
             isochrone.redraw()
-            isochrones.append(isochrone)
-        return isochrones
+    
+    @postpone
+    def createIsochronesWF(self):
+        # subprocess.run(f'temporal workflow start -t wh-task-queue --type WarehouseIsos -w wh_iso_{self.id} -i {self.id}')
+        # subprocess.run(f'temporal workflow start -t wh-task-queue --type WarehouseNearest -w wh_near_{self.id} -i {self.id}')
+        async def run():
+            client = await Client.connect("localhost:7233")
+            await client.execute_workflow(
+                WarehouseIsos.run, self.id, id=f"wh_iso_{self.id}", task_queue="wh-task-queue"
+            )
+        asyncio.run(run())
+
+    @postpone
+    def findNearestWF(self):
+        # subprocess.run(f'temporal workflow start -t wh-task-queue --type WarehouseIsos -w wh_iso_{self.id} -i {self.id}')
+        # subprocess.run(f'temporal workflow start -t wh-task-queue --type WarehouseNearest -w wh_near_{self.id} -i {self.id}')
+        async def run():
+            client = await Client.connect("localhost:7233")
+            await client.execute_workflow(
+                WarehouseNearest.run, self.id, id=f"wh_near_{self.id}", task_queue="wh-task-queue"
+            )
+        asyncio.run(run())
+
+    async def afindNearest(self):
+        return await sync_to_async(self.findNearest)()
     
     def findNearest(self):
         nearest_st = {'rw':None, 'len': 10000000}
@@ -45,3 +83,25 @@ class Warehouse(models.Model):
             'rw': rw,
             'len': len
         }
+
+@postpone   
+def batchCreateWF(file):
+    data_read = getRowsFromCSV(file)
+    async def run(rows):
+        client = await Client.connect("localhost:7233")
+        for row in rows:
+            try:
+                phone = row[0]
+                point = row[1]
+                the_id = await client.execute_workflow(
+                    WarehouseCreate.run, ComposeCreateInput(phone=phone, point=point), id=f"wh_create_{phone}", task_queue="wh-task-queue"
+                )
+                await client.execute_workflow(
+                    WarehouseIsos.run, the_id, id=f"wh_iso_{str(the_id)}", task_queue="wh-task-queue"
+                )
+                await client.execute_workflow(
+                    WarehouseNearest.run, the_id, id=f"wh_near_{str(the_id)}", task_queue="wh-task-queue"
+                )
+            except:
+                pass
+    asyncio.run(run(data_read))

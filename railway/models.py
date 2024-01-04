@@ -6,7 +6,14 @@ from django.contrib.gis.geos import GEOSGeometry
 import matplotlib.pyplot as plt
 from geo.settings import BASE_DIR
 
+from geo.utils import postpone, getRowsFromCSV
+from temporalio.client import Client
+from .workflows import RailwayCreate, RailwayCreateNb
+import asyncio
+from asgiref.sync import sync_to_async
 
+from .activities import ComposeCreateInput, ComposeCreateNbInput
+import csv, io
 
 class Railway(models.Model):
     iid = models.IntegerField()
@@ -96,13 +103,72 @@ def removeNotConts(g: nx.Graph, not_conts, total):
             g.remove_edge(root[0], root[1])
             g.remove_node(node)
 
+@postpone   
+def batchCreateRwWF(file):
+    
+    data_read = getRowsFromCSV(file)
+    
+    async def run(rows):
+        await NeighborhoodOp.objects.all().adelete()
+        await Neighborhood.objects.all().adelete()
+        await Railway.objects.all().adelete()
+        client = await Client.connect("localhost:7233")
+        for row in rows:
+            try:
+                iid = int(row[0])
+                name = row[1]
+                point = row[2]
+                is_cont = bool(row[4])
+                the_id = await client.execute_workflow(
+                    RailwayCreate.run, ComposeCreateInput(
+                        iid=iid,
+                        name=name,
+                        point=point,
+                        is_cont=is_cont,
+                    ), id=f"rw_create_{str(iid)}", task_queue="rw-task-queue"
+                )
+            except:
+                pass
+    asyncio.run(run(data_read))
+
+@postpone   
+def batchCreateNbWF(file):
+    
+    data_read = getRowsFromCSV(file)
+    
+    async def run(rows):
+        await NeighborhoodOp.objects.all().adelete()
+        await Neighborhood.objects.all().adelete()
+        client = await Client.connect("localhost:7233")
+        for row in rows:
+            try:
+                source_iid = int(row[0])
+                target_iid = int(row[1])
+                length = int(row[2])
+                the_id = await client.execute_workflow(
+                    RailwayCreateNb.run, ComposeCreateNbInput(
+                        source_iid=source_iid,
+                        target_iid=target_iid,
+                        length=length,
+                    ), id=f"rw_nb_create_{str(source_iid)}_{str(target_iid)}", task_queue="rw-task-queue"
+                )
+            except:
+                pass
+    asyncio.run(run(data_read))
+
 class Neighborhood(models.Model):
     source = models.ForeignKey(Railway, on_delete=models.CASCADE, related_name = 'source')
     target = models.ForeignKey(Railway, on_delete=models.DO_NOTHING, related_name = 'target', null=True)
     length = models.FloatField()
 
+    def __str__(self) -> str:
+        return f'{str(self.source.id)}_{str(self.target.id)}'
+
 class NeighborhoodOp(models.Model):
     source = models.ForeignKey(Railway, on_delete=models.CASCADE, related_name = 'sourceop')
     target = models.ForeignKey(Railway, on_delete=models.DO_NOTHING, related_name = 'targetop', null=True)
     length = models.FloatField()
+
+    def __str__(self) -> str:
+        return f'{str(self.source.id)}_{str(self.target.id)}'
 

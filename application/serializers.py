@@ -10,7 +10,6 @@ class WarehouseModelSerializer(serializers.ModelSerializer):
         exclude = ()
     
     def create(self, validated_data):
-        print(json.dumps(validated_data['point']))
         validated_data['point'] = GEOSGeometry(json.dumps(validated_data['point']))
         return super().create(validated_data)
     
