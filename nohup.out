@@ -1,0 +1,22 @@
+[2024-01-02 09:43:29 +0300] [1872] [INFO] Starting gunicorn 21.2.0
+[2024-01-02 09:43:29 +0300] [1872] [INFO] Listening at: http://127.0.0.1:8000 (1872)
+[2024-01-02 09:43:29 +0300] [1872] [INFO] Using worker: sync
+[2024-01-02 09:43:29 +0300] [1873] [INFO] Booting worker with pid: 1873
+Not Found: /
+Not Found: /
+Not Found: /
+Not Found: /
+Not Found: /
+Not Found: /
+Not Found: /
+Not Found: /
+Not Found: /
+Not Found: /
+Not Found: /
+Not Found: /
+Not Found: /
+Not Found: /
+[2024-01-02 09:45:10 +0300] [2003] [INFO] Starting gunicorn 21.2.0
+[2024-01-02 09:45:10 +0300] [2003] [INFO] Listening at: http://127.0.0.1:8000 (2003)
+[2024-01-02 09:45:10 +0300] [2003] [INFO] Using worker: sync
+[2024-01-02 09:45:10 +0300] [2004] [INFO] Booting worker with pid: 2004
