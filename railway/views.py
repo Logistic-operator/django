@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Railway, Neighborhood
 from warehouse.models import batchCreateWF
+from railway.models import batchCreateRwWF, batchCreateNbWF
 from django.contrib.gis.geos import GEOSGeometry
 from django.apps import apps
 
@@ -39,27 +40,36 @@ def railway_upload(request, name):
         batchCreateWF(csv_file)
         messages.success(request, 'Added batch create to temporal')
         return redirect('/admin/warehouse/warehouse/')
-    data_set = csv_file.read().decode('UTF-8')
-    io_string = io.StringIO(data_set)
-    next(io_string)
-    i = 1
+    if name == 'rail':
+        batchCreateRwWF(csv_file)
+        messages.success(request, 'Added batch create to temporal')
+        return redirect('/admin/railway/railway/')
+    if name == 'neib':
+        print(123)
+        batchCreateNbWF(csv_file)
+        messages.success(request, 'Added batch create to temporal')
+        return redirect('/admin/railway/neighborhood/')
+    # data_set = csv_file.read().decode('UTF-8')
+    # io_string = io.StringIO(data_set)
+    # next(io_string)
+    # i = 1
     
-    for column in csv.reader(io_string, delimiter='\t', quotechar="|"):
-        print(name,' ', str(i))
-        if name == 'rail':
-            Railway.objects.update_or_create(
-                iid=column[0],
-                name=column[1],
-                point=GEOSGeometry(column[2]),
-                is_cont=column[4]
-            )
-        elif name == 'neib':
-            Neighborhood.objects.update_or_create(
-                source=Railway.objects.get(iid=int(column[0])),
-                target=Railway.objects.get(iid=int(column[1])),
-                length=column[2],
-            )
-        i += 1
+    # for column in csv.reader(io_string, delimiter='\t', quotechar="|"):
+    #     print(name,' ', str(i))
+    #     if name == 'rail':
+    #         Railway.objects.update_or_create(
+    #             iid=column[0],
+    #             name=column[1],
+    #             point=GEOSGeometry(column[2]),
+    #             is_cont=column[4]
+    #         )
+    #     elif name == 'neib':
+    #         Neighborhood.objects.update_or_create(
+    #             source=Railway.objects.get(iid=int(column[0])),
+    #             target=Railway.objects.get(iid=int(column[1])),
+    #             length=column[2],
+    #         )
+    #     i += 1
         
-    context = {}
-    return render(request, template, context)
+    # context = {}
+    # return render(request, template, context)

@@ -6,16 +6,13 @@ from django.db.models import Count
 import requests
 import asyncio
 
-from geo.utils import postpone
+from geo.utils import postpone, getRowsFromCSV
 from temporalio.client import Client
 from .workflows import WarehouseIsos, WarehouseNearest, WarehouseCreate
 import asyncio
 from asgiref.sync import sync_to_async
 
-from django.contrib.gis.geos import GEOSGeometry
-
 from .activities import ComposeCreateInput
-import csv, io
 
 
 class Warehouse(models.Model):
@@ -89,12 +86,7 @@ class Warehouse(models.Model):
 
 @postpone   
 def batchCreateWF(file):
-    print(file)
-    data_set = file.read().decode('UTF-8')
-    io_string = io.StringIO(data_set)
-    # next(io_string)
-    reader = csv.reader(io_string, delimiter="\t", quotechar='"')
-    data_read = [row for row in reader]
+    data_read = getRowsFromCSV(file)
     async def run(rows):
         client = await Client.connect("localhost:7233")
         for row in rows:
