@@ -1,7 +1,8 @@
 import csv, io
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Railway, Neighborhood
+from warehouse.models import batchCreateWF
 from django.contrib.gis.geos import GEOSGeometry
 from django.apps import apps
 
@@ -31,14 +32,18 @@ def railway_upload(request, name):
     csv_file = request.FILES['file']
     if not csv_file.name.endswith('.csv'):
         messages.error(request, 'THIS IS NOT A CSV FILE')
-    names = ['rail','neib',]
+    names = ['rail','neib', 'wh']
     if name not in names:
         messages.error(request, 'URL not in [' + ','.join(names) + ']')
-
+    if name == 'wh':
+        batchCreateWF(csv_file)
+        messages.success(request, 'Added batch create to temporal')
+        return redirect('/admin/warehouse/warehouse/')
     data_set = csv_file.read().decode('UTF-8')
     io_string = io.StringIO(data_set)
     next(io_string)
     i = 1
+    
     for column in csv.reader(io_string, delimiter='\t', quotechar="|"):
         print(name,' ', str(i))
         if name == 'rail':
