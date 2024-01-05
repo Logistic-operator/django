@@ -35,7 +35,7 @@ class Railway(models.Model):
     
     @classmethod
     @postpone
-    async def optimizeWF(cls):
+    def optimizeWF(cls):
         async def run():
             client = await Client.connect("localhost:7233")
             await client.execute_workflow(

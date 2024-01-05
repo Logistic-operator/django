@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 
 class WarehouseAdmin(DjangoObjectActions, GISModelAdmin):
 
-    actions = ["create_isochrones_all", 'find_nearest_station']
+    actions = ["create_isochrones_all", 'find_nearest_station', 'cascade_delete']
     changelist_actions = ('import_CSV',)
 
     @admin.action(description="Create all isochrones")
@@ -18,6 +18,17 @@ class WarehouseAdmin(DjangoObjectActions, GISModelAdmin):
             self.message_user(
                 request,
                 'created ' + str(warehouse.id) + ' all isochrones',
+                messages.SUCCESS,
+            )
+    
+    @admin.action(description="Cascade delete")
+    def cascade_delete(self, request, queryset):
+        for warehouse in queryset:
+            id = warehouse.id
+            warehouse.delete()
+            self.message_user(
+                request,
+                'deleted ' + str(id) + '',
                 messages.SUCCESS,
             )
     
