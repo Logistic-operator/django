@@ -16,11 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from railway.views import railway_upload
+from railway.views import railway_upload, getAll
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('upload-csv/<str:name>', railway_upload),
+    path('get-all', getAll, name='get all'),
     path('wh/', include('warehouse.urls', namespace='warehouse')),
     path('iso/', include('isochrone.urls', namespace='isochrone')),
     path('app/', include('application.urls', namespace='application')),

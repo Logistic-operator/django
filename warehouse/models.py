@@ -90,18 +90,26 @@ def batchCreateWF(file):
     async def run(rows):
         client = await Client.connect("localhost:7233")
         for row in rows:
+            the_wh = None
+            the_id = None
             try:
                 phone = row[0]
                 point = row[1]
                 the_id = await client.execute_workflow(
                     WarehouseCreate.run, ComposeCreateInput(phone=phone, point=point), id=f"wh_create_{phone}", task_queue="wh-task-queue"
                 )
-                await client.execute_workflow(
-                    WarehouseIsos.run, the_id, id=f"wh_iso_{str(the_id)}", task_queue="wh-task-queue"
-                )
-                await client.execute_workflow(
-                    WarehouseNearest.run, the_id, id=f"wh_near_{str(the_id)}", task_queue="wh-task-queue"
-                )
             except:
-                pass
+                the_wh = await Warehouse.objects.filter(point=point).select_related("nearest_railway").afirst()
+                the_id = the_wh.id
+            if the_wh:
+                if not the_wh.nearest_railway:
+                    try:
+                        await client.execute_workflow(
+                            WarehouseIsos.run, the_id, id=f"wh_iso_{str(the_id)}", task_queue="wh-task-queue"
+                        )
+                        await client.execute_workflow(
+                            WarehouseNearest.run, the_id, id=f"wh_near_{str(the_id)}", task_queue="wh-task-queue"
+                        )
+                    except:
+                        pass
     asyncio.run(run(data_read))

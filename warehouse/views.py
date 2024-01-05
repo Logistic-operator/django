@@ -16,6 +16,13 @@ from .serializers import WarehouseModelSerializer
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
+def getWHs(req):
+    theWH = Warehouse.objects.all()
+    serializer = WarehouseModelSerializer(theWH, many=True)
+    return Response({'warehouses': serializer.data}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
 @renderer_classes([WarehouseJSONRenderer])
 def getWH(req):
     wh = req.data.get('warehouse', None)

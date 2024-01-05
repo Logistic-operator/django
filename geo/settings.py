@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'django_extensions',
     'django_object_actions',
+    'corsheaders',
+    'rest_framework',
     'warehouse',
     'isochrone',
     'railway',
@@ -54,6 +56,8 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -136,3 +140,4 @@ STATIC_ROOT = os.getenv('STATIC_ROOT')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+CORS_ORIGIN_ALLOW_ALL = True

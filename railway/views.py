@@ -1,8 +1,9 @@
 import csv, io
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from .models import Railway, Neighborhood
-from warehouse.models import batchCreateWF
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from .models import Railway, Neighborhood, NeighborhoodOp
+from warehouse.models import batchCreateWF, Warehouse
 from railway.models import batchCreateRwWF, batchCreateNbWF
 from django.contrib.gis.geos import GEOSGeometry
 from django.apps import apps
@@ -18,7 +19,26 @@ from rest_framework.decorators import (
 from rest_framework.exceptions import NotFound
 from rest_framework.parsers import MultiPartParser, FormParser
 
-
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def getAll(req):
+    whs = Warehouse.objects.all()
+    rws = Railway.objects.filter(is_cont=True)
+    edges = NeighborhoodOp.objects.all()
+    res = {}
+    res['whs'] = []
+    res['rws'] = []
+    res['edges'] = []
+    for wh in whs:
+        wh_dict = {'id': wh.id, 'point': wh.point.__str__()}
+        wh_dict['st_id'] = wh.nearest_railway.id if wh.nearest_railway else None
+        wh_dict['st_len'] = wh.nearest_railway_length
+        res['whs'].append(wh_dict)
+    for rw in rws:
+        res['rws'].append({'id': rw.id, 'point': rw.point.__str__(),})
+    for edge in edges:
+        res['edges'].append({'source_id': edge.source.id, 'target_id': edge.target.id, 'len': edge.length,})
+    return Response(res, status=status.HTTP_200_OK)
 
 def railway_upload(request, name):    
     template = "profile_upload.html"
