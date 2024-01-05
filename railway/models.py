@@ -8,12 +8,11 @@ from geo.settings import BASE_DIR
 
 from geo.utils import postpone, getRowsFromCSV
 from temporalio.client import Client
-from .workflows import RailwayCreate, RailwayCreateNb
+from .workflows import RailwayCreate, RailwayCreateNb, RailwayOptimize
 import asyncio
 from asgiref.sync import sync_to_async
 
 from .activities import ComposeCreateInput, ComposeCreateNbInput
-import csv, io
 
 class Railway(models.Model):
     iid = models.IntegerField()
@@ -34,6 +33,21 @@ class Railway(models.Model):
             isochrones.append(isochrone)
         return isochrones
     
+    @classmethod
+    @postpone
+    async def optimizeWF(cls):
+        async def run():
+            client = await Client.connect("localhost:7233")
+            await client.execute_workflow(
+                RailwayOptimize.run, id=f"rw_opt", task_queue="rw-task-queue"
+            )
+        asyncio.run(run())
+    
+    @classmethod
+    async def aoptimize(cls):
+        return await sync_to_async(cls.optimize)()
+
+
     @classmethod
     def optimize(cls):
         G, not_conts = getGraph(cls)

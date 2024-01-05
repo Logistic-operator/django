@@ -20,7 +20,7 @@ class RailwayAdmin(DjangoObjectActions, GISModelAdmin):
         obj[0].optimizeWF()
         self.message_user(
             request,
-            'optimized',
+            'optimizing added to temporal',
             messages.SUCCESS,
         )
     @action(label="Draw graph", description="Draw graph")

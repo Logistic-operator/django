@@ -43,3 +43,8 @@ async def createNb(input: ComposeCreateNbInput) -> int:
         )
     await the_nb.asave()
     return the_nb.id
+
+@activity.defn
+async def optimize() -> str:
+    Railway = apps.get_model(app_label='railway', model_name='Railway')
+    return await Railway.aoptimize()
