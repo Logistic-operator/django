@@ -4,18 +4,19 @@ from django.contrib.gis.admin import GISModelAdmin, TabularInline, action
 from django.contrib import messages
 
 class IsochroneAdmin(GISModelAdmin):
-    actions = ["test1", 'getRailways']
-    exclude = ('railways', 'geom')
+    actions = ["cascade_delete", 'getRailways']
+    exclude = ()
     
 
-    @action(description="test1")
-    def test1(self, request, queryset):
-        queryset[0].test()
+    @admin.action(description="Cascade delete")
+    def cascade_delete(self, request, queryset):
+        for iso in queryset:
+            iso.delete()
         self.message_user(
-                request,
-                'test ',
-                messages.SUCCESS,
-            )
+            request,
+            'deleted',
+            messages.SUCCESS,
+        )
         
     @action(description="Get Railways")
     def getRailways(self, request, queryset):

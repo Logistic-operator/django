@@ -1,10 +1,11 @@
 from django.contrib.gis.db import models as models
-from isochrone.models import Isochrone
+from globalvar.models import Globalvar
 import networkx as nx
 from geo.utils import printProgressBar
 from django.contrib.gis.geos import GEOSGeometry
 import matplotlib.pyplot as plt
 from geo.settings import BASE_DIR
+from django.apps import apps
 
 from geo.utils import postpone, getRowsFromCSV
 from temporalio.client import Client
@@ -46,7 +47,6 @@ class Railway(models.Model):
     @classmethod
     async def aoptimize(cls):
         return await sync_to_async(cls.optimize)()
-
 
     @classmethod
     def optimize(cls):
@@ -185,4 +185,3 @@ class NeighborhoodOp(models.Model):
 
     def __str__(self) -> str:
         return f'{str(self.source.id)}_{str(self.target.id)}'
-

@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import Railway, Neighborhood, NeighborhoodOp
-from warehouse.models import batchCreateWF, Warehouse
+from warehouse.models import batchCreateWF, Warehouse, NeighborhoodRailway
 from railway.models import batchCreateRwWF, batchCreateNbWF
 from django.contrib.gis.geos import GEOSGeometry
 from django.apps import apps
@@ -22,18 +22,24 @@ from rest_framework.parsers import MultiPartParser, FormParser
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def getAll(req):
-    whs = Warehouse.objects.all()
+    whs = Warehouse.objects.filter(id=15)
+    wh_edges = NeighborhoodRailway.objects.filter(warehouse__id=15)
     rws = Railway.objects.filter(is_cont=True)
     edges = NeighborhoodOp.objects.all()
     res = {}
     res['whs'] = []
+    res['wh_edges'] = []
     res['rws'] = []
     res['edges'] = []
     for wh in whs:
-        wh_dict = {'id': wh.id, 'point': wh.point.__str__()}
-        wh_dict['st_id'] = wh.nearest_railway.id if wh.nearest_railway else None
-        wh_dict['st_len'] = wh.nearest_railway_length
-        res['whs'].append(wh_dict)
+        res['whs'].append({'id': wh.id, 'point': wh.point.__str__()})
+    for wh_edge in wh_edges:
+        res['wh_edges'].append({
+            'wh': wh_edge.warehouse.id, 
+            'st': wh_edge.railway.id, 
+            'timespan': wh_edge.isochrone.timespan, 
+            'geom': wh_edge.geom, 
+            'len': wh_edge.length,})
     for rw in rws:
         res['rws'].append({'id': rw.id, 'point': rw.point.__str__(),})
     for edge in edges:

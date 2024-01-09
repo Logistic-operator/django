@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'isochrone',
     'railway',
     'application',
+    'globalvar',
 ]
 
 MIDDLEWARE = [

@@ -1,12 +1,12 @@
 from django.urls import path
 
-from .views import getWH, createWH, updateWH, removeWH
+from .views import getProductsSell, getProductsBuy, getApplications, getRoute
 
 app_name = 'application'
 
 urlpatterns = [
-    path('', getWH, name='get'),
-    path('new', createWH, name='create'),
-    path('update', updateWH, name='update'),
-    path('del', removeWH, name='delete'),
+    path('products/sell/', getProductsSell, name='get products sell'),
+    path('products/buy/', getProductsBuy, name='get products buy'),
+    path('wh/', getApplications, name='get applications'),
+    path('route/', getRoute, name='get route'),
 ]

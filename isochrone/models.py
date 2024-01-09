@@ -4,6 +4,7 @@ import json
 from django.contrib.gis.geos import GEOSGeometry, GeometryCollection
 from django.apps import apps
 from rest_framework.exceptions import ValidationError
+from railway.models import Railway
 
 from geo.utils import printProgressBar
 
@@ -11,8 +12,8 @@ class Isochrone(models.Model):
     warehouse = models.ForeignKey('warehouse.Warehouse', on_delete=models.CASCADE)
     timespan = models.IntegerField() # minutes
     geom = models.PolygonField(null=True)
-    railways = models.ManyToManyField('railway.Railway', symmetrical = False, related_name = 'Railways')
-    all_geom = models.GeometryCollectionField(null=True)
+    # railways = models.ManyToManyField('railway.Railway', through='NeighborhoodRailway', related_name = 'Railways')
+    # all_geom = models.GeometryCollectionField(null=True)
 
     readonly_fields=('geom', 'all_geom')
     unique_together=('warehouse', 'timespan')
@@ -43,34 +44,36 @@ class Isochrone(models.Model):
         except Exception as ex:
             raise ValidationError('Smth went wrong')
         self.geom = GEOSGeometry(json_res)
-        self.getRailways()
+        self.save()
         
 
-    def getRailways(self):
-        self.save()
-        query = 'select st.* from (select id as iso_id, geom from isochrone_isochrone where id=%s) as iso cross join railway_railway as st where st.is_cont and ST_Contains(iso.geom, st.point)'
-        Railway = apps.get_model(app_label='railway', model_name='Railway')
-        self.railways.through.objects.all().delete()
-        RWs = Railway.objects.raw(query, [self.id])
-        total = len(RWs)
+    # def getRailways(self):
+    #     # query = 'select st.* from (select id as iso_id, geom from isochrone_isochrone where id=%s) as iso cross join railway_railway as st where st.is_cont and ST_Contains(iso.geom, st.point)'
+    #     Railway = apps.get_model(app_label='railway', model_name='Railway')
+    #     self.railways.clear()
+    #     # RWs = Railway.objects.raw(query, [self.id])
+    #     RWs = Railway.objects.filter(is_cont=True)
+    #     isos = Isochrone.objects.filter(warehouse=self.warehouse)
+    #     print(Railway.isochrone_set.all().query)
+    #     for iso in isos:
+    #         RWs = RWs.difference(iso.railways.through.objects.all().select_related('railway'))
+    #     total = len(RWs)
         
-        for i, r in enumerate(RWs):
-            self.railways.add(r)
-            printProgressBar(i + 1, total, prefix = 'Railway To Isochrone Progress:', suffix = 'Complete', length = 40)
+    #     for i, r in enumerate(RWs):
+    #         if not self.geom.contains(r.point):
+    #             continue
+    #         trip = self.warehouse.getWhToStationRoute(r)
+    #         if not trip['rw']:
+    #             continue
+    #         rw = NeighborhoodRailway(isochrone=self, railway=r, geom=trip['geom'], length=trip['len'])
+    #         rw.save()
+    #         printProgressBar(i + 1, total, prefix = 'Railway To Isochrone Progress:', suffix = 'Complete', length = 40)
 
-        self.all_geom = GeometryCollection(self.geom, *[r.point for r in self.railways.all()])
-        self.save()
-        return self
-    
-def getWhToStationRoute(wh, rw):
+    #     # self.all_geom = GeometryCollection(self.geom, *[r.point for r in self.railways.all()])
+    #     self.save()
 
-    return {
-        'id': rw.id,
-        'len': 1
-    }
-
-    @classmethod
-    def test(cls):
-        self = cls.objects.get(id=14)
-        query = 'select st.* from (select id as iso_id, geom from isochrone_isochrone where id=%s) as iso cross join railway_railway as st where st.is_cont and ST_Contains(iso.geom, st.point)'
-        print(len(list(cls.objects.raw(query, [self.id]))))
+# class NeighborhoodRailway(models.Model):
+#     isochrone = models.ForeignKey(Isochrone, on_delete=models.CASCADE)
+#     railway = models.ForeignKey(Railway, on_delete=models.CASCADE)
+#     geom = models.CharField()
+#     length = models.FloatField()
